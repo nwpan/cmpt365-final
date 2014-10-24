@@ -1,0 +1,17 @@
+GIT
+  remote: https://github.com/tja/ruby-ffmpeg
+  revision: 547edea222f3d726a8bd0f9c7d44f9a206e582b3
+  specs:
+    ruby-ffmpeg (0.2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    qtbindings (4.8.6.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  qtbindings
+  ruby-ffmpeg!

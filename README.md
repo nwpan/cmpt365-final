@@ -1,0 +1,1 @@
+Install at least QT 4.X
