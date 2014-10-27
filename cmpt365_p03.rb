@@ -7,8 +7,8 @@ Bundler.require(:default)
 
 require 'Qt'
 
-WIDTH = 800
-HEIGHT = 600
+WIDTH   = 320
+HEIGHT  = 200
 
 class QtApp < Qt::MainWindow
   def initialize
@@ -16,7 +16,7 @@ class QtApp < Qt::MainWindow
 
     setWindowTitle "Spatio-Temporal Video Transitions"
 
-    @videoWidget = Video.new(self)
+    @videoWidget = VideoPlayer.new(self)
     setCentralWidget @videoWidget
 
     resize WIDTH, HEIGHT
@@ -38,10 +38,13 @@ class QtApp < Qt::MainWindow
   end
 end
 
-class Video < Qt::Widget
+class VideoPlayer < Qt::Widget
   def initialize(parent)
     super(parent)
 
+    @timer = Qt::Timer.new(self)
+    connect(@timer, SIGNAL('timeout()'), self, SLOT('update()'))
+    @timer.start(1000)
     setFocusPolicy Qt::StrongFocus
 
     initVideo
@@ -49,21 +52,24 @@ class Video < Qt::Widget
 
   def initVideo
     @frames = getFrames
+    @time = Qt::Time.currentTime
   end
 
   def paintEvent event
     painter = Qt::Painter.new
     painter.begin self
-    drawObjects painter
+    drawFrames painter
     painter.end
   end
 
-  def drawObjects painter
+  def drawFrames painter
     painter.setPen Qt::NoPen
-    @frames.each do |frame|
+    #@frames.each do |frame|
+      puts @time.elapsed / 1000
+      frame = @frames[@time.elapsed / 1000]
       image = Qt::Image.new(frame.data, frame.width, frame.height, Qt::Image.Format_RGB888)
       painter.drawImage 0, 0, image
-    end
+    #end
   end
 
   def getFrames
@@ -73,12 +79,19 @@ class Video < Qt::Widget
         video_stream = reader.streams.select { |s| s.type == :video }.first
         raise "File does not contain a video stream" unless video_stream
         while frame = video_stream.decode ^ video_stream.resampler(:rgb24) do
+          break unless frame.instance_of?(FFMPEG::VideoFrame)
           frames << frame
-          break
         end
       end
     end
     return frames
+  end
+
+  def time
+    t = Time.now
+    result = yield
+    puts "\nCompleted in #{Time.now - t} seconds"
+    result
   end
 end
 
