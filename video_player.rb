@@ -60,6 +60,10 @@ class VideoPlayback
     main_video.frames[frame_number]
   end
 
+  def videoWipe(start, video_id)
+
+  end
+
 private
   attr_writer :main_video, :videos
 end
@@ -72,9 +76,9 @@ class Video
     self.frames_count = frames.size
   end
 
-private
-  attr_writer :frames, :frames_count
 
+  attr_writer :frames, :frames_count
+private
   def getFrames(file)
     frames = Array.new
     File.open(file) do |io|
