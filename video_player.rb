@@ -14,7 +14,8 @@ class VideoPlayer < Qt::Widget
     @video_1 = Video.new("./assets/earth.avi")
     @video_2 = Video.new("./assets/bailey.mpg")
     @time = Qt::Time.currentTime
-    @height_cnt = 0
+    @viewport = Viewport.new(320, 200)
+    @video_playback = VideoPlayback.new(@video_1)
   end
 
   def paintEvent event
@@ -27,36 +28,52 @@ class VideoPlayer < Qt::Widget
   def drawFrames painter
     painter.setPen Qt::NoPen
 
-    return if @video_1.frames.nil?
-
-    frame_number = (@time.elapsed / $FRAMES_PER_SECOND) % @video_1.frames_count
-
-    puts "Frame #: #{frame_number}"
-    frame = @video_1.frames[frame_number]
-    image = Qt::Image.new(frame.data, frame.width, frame.height, Qt::Image.Format_RGB888)
+    @viewport.frame = @video_playback.getFrame(@time.elapsed)
+    image = Qt::Image.new(@viewport.frame.data, @viewport.width, @viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 0, 0, image
-
-    frame = @video_2.frames[frame_number]
-    image = Qt::Image.new(frame.data, frame.width, @height_cnt, Qt::Image.Format_RGB888)
-    painter.drawImage 0, 0, image
-
-    @height_cnt += 1
   end
 
 end
 
+class Viewport
+  attr_reader :frame, :width, :height
+
+  def initialize(width, height)
+    self.width = width
+    self.height = height
+  end
+
+  attr_writer :frame, :width, :height
+end
+
+class VideoPlayback
+  attr_reader :main_video, :videos
+
+  def initialize(main_video)
+    self.main_video = main_video
+  end
+
+  def getFrame(time_elapsed)
+    return nil if main_video.nil? || main_video.frames_count <= 0
+    frame_number = (time_elapsed / $FRAMES_PER_SECOND) % main_video.frames_count
+    puts "Frame #: #{frame_number}" if $DEBUG == true
+    main_video.frames[frame_number]
+  end
+
+private
+  attr_writer :main_video, :videos
+end
+
 class Video
-  attr_reader :frames, :frames_count, :width, :height
+  attr_reader :frames, :frames_count
 
   def initialize(file)
     self.frames = getFrames(file)
     self.frames_count = frames.size
-    self.width = frames.first.width
-    self.height = frames.first.height
   end
 
 private
-  attr_writer :frames, :frames_count, :width, :height
+  attr_writer :frames, :frames_count
 
   def getFrames(file)
     frames = Array.new
@@ -73,3 +90,4 @@ private
     return frames
   end
 end
+

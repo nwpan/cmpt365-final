@@ -8,6 +8,7 @@ Bundler.require(:default)
 require 'Qt'
 require_relative 'video_player'
 
+$DEBUG              = true
 $WIDTH              = 320
 $HEIGHT             = 200
 $FRAMES_PER_SECOND  = 100
