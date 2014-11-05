@@ -71,7 +71,7 @@ class VideoPlayback
   def getFrame(time_elapsed)
     return nil if main_video.nil? || main_video.frames_count <= 0
     frame_number = (time_elapsed / $FRAMES_PER_SECOND) % main_video.frames_count
-    puts "Frame #: #{frame_number}" if $DEBUG == true
+    puts "[NOTICE] Frame #: #{frame_number}" if $DEBUG == true
     main_video.frames[frame_number]
   end
 
