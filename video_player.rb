@@ -11,14 +11,23 @@ class VideoPlayer < Qt::Widget
   end
 
   def initVideo
+    puts "[NOTICE] Initializing Video #1" if $DEBUG == true
     video_1 = Video.new("./assets/MELT.MPG")
+    puts "[NOTICE] Video Loaded: #{video_1.frames.length} Frames" if $DEBUG == true
+    puts "[NOTICE] Initializing Video #2" if $DEBUG == true
     video_2 = Video.new("./assets/DELTA.MPG")
+    puts "[NOTICE] Video Loaded: #{video_2.frames.length} Frames" if $DEBUG == true
     @time = Qt::Time.currentTime
-    #@viewport = Viewport.new(64, 64)
+    puts "[NOTICE] Current Time: #{@time.toString}" if $DEBUG == true
+    puts "[NOTICE] Initializing Viewport" if $DEBUG == true
     @viewport = Viewport.new(320, 200)
+    puts "[NOTICE] Loading Video #1 into Video Playback" if $DEBUG == true
     @video_playback = VideoPlayback.new(video_1, 320, 200)
+    puts "[NOTICE] Loading Video #2 into Video Playback" if $DEBUG == true
     @video_playback.videos << video_2
-    @video_playback.videoWipe(0, 0)
+    puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
+    @video_playback.videoWipe(0, 0, 4)
+    puts "[NOTICE] Initialization Complete" if $DEBUG == true
   end
 
   def paintEvent event
@@ -66,43 +75,35 @@ class VideoPlayback
     main_video.frames[frame_number]
   end
 
-  def videoWipe(start, video_id)
+  def videoWipe(start, video_id, speed)
     next_video = videos[video_id]
-
-
-    # This is a confusing part, calculates the steps required for one transition.
-    # Basically each element in the array is represented by 3 values of 255, (R, G, B).
-    # So if we have a 64-by-64 frame, we have 3 colours * 64 height pixels * 64 width
-    # pixels, which equals 12288. main_video.frames[0].size/3/320
-    transition_time = 98
     width_actual = self.width*3
     end_pos = height*width_actual
 
-    cnt = width-1
+    transition_time = (main_video.frames.size > next_video.frames.size ? next_video.frames.size : main_video.frames.size)-1
+
+    puts "[NOTICE] Transition Time: #{transition_time}" if $DEBUG == true
+
+    pos_boundary = width-1
     for c in 0..transition_time
       main_data = main_video.frames[c].unpack('C*')
       next_data = next_video.frames[c].unpack('C*')
-      #raise "ERROR: Dimension problems." unless main_video.frames.size != transition_time * 3 * 64
-
-      for row in 0..height
+      for row in (0..height)
         row_actual = row*width_actual
-        for col in (width-1).downto(cnt)
+        for col in (width-1).downto(pos_boundary)
           col_actual = col*3
           pos_actual = (col_actual-row_actual)
 
           if next_data[pos_actual].nil?
             break
           end
-          red = next_data[pos_actual]
-          green = next_data[pos_actual+1]
-          blue = next_data[pos_actual+2]
 
-          main_data[pos_actual] = red
-          main_data[pos_actual+1] = green
-          main_data[pos_actual+2] = blue
+          main_data[pos_actual] = next_data[pos_actual]
+          main_data[pos_actual+1] = next_data[pos_actual+1]
+          main_data[pos_actual+2] = next_data[pos_actual+2]
         end
       end
-      cnt -= 4
+      pos_boundary -= speed
       main_video.frames[c] = main_data.pack('C*')
     end
   end
@@ -127,7 +128,7 @@ private
     File.open(file) do |io|
       FFMPEG::Reader.open(io) do |reader|
         video_stream = reader.streams.select { |s| s.type == :video }.first
-        raise "File does not contain a video stream" unless video_stream
+        raise "[ERROR] File does not contain a video stream" unless video_stream
         while frame = video_stream.decode ^ video_stream.resampler(:rgb24) do
           break unless frame.instance_of?(FFMPEG::VideoFrame)
           frames << frame.data
