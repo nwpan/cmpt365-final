@@ -9,7 +9,7 @@ require 'Qt'
 require_relative 'video_player'
 
 $DEBUG              = true
-$WIDTH              = 320
+$WIDTH              = 640
 $HEIGHT             = 200
 $FRAMES_PER_SECOND  = 100
 
@@ -21,7 +21,7 @@ class QtApp < Qt::MainWindow
 
     @videoWidget = VideoPlayer.new(self)
     setCentralWidget @videoWidget
-
+    setFixedSize($WIDTH, $HEIGHT)
     resize $WIDTH, $HEIGHT
 
     center

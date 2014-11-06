@@ -2,12 +2,9 @@ class VideoPlayer < Qt::Widget
   def initialize(parent)
     super(parent)
 
-    @timer = Qt::Timer.new(self)
-    connect(@timer, SIGNAL('timeout()'), self, SLOT('update()'))
     setFocusPolicy Qt::StrongFocus
 
     initVideo
-    @timer.start($FRAMES_PER_SECOND)
   end
 
   def initVideo
@@ -17,10 +14,9 @@ class VideoPlayer < Qt::Widget
     puts "[NOTICE] Initializing Video #2" if $DEBUG == true
     video_2 = Video.new("./assets/DELTA.MPG")
     puts "[NOTICE] Video Loaded: #{video_2.frames.length} Frames" if $DEBUG == true
-    @time = Qt::Time.currentTime
-    puts "[NOTICE] Current Time: #{@time.toString}" if $DEBUG == true
-    puts "[NOTICE] Initializing Viewport" if $DEBUG == true
+    puts "[NOTICE] Initializing Swipe Viewport and STI Viewport" if $DEBUG == true
     @viewport = Viewport.new(320, 200)
+    @sti_viewport = Viewport.new(320, 200, :black)
     puts "[NOTICE] Loading Video #1 into Video Playback" if $DEBUG == true
     @video_playback = VideoPlayback.new(video_1, 320, 200)
     puts "[NOTICE] Loading Video #2 into Video Playback" if $DEBUG == true
@@ -28,6 +24,11 @@ class VideoPlayer < Qt::Widget
     puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
     @video_playback.videoWipe(0, 0, 4)
     puts "[NOTICE] Initialization Complete" if $DEBUG == true
+    @timer = Qt::Timer.new(self)
+    connect(@timer, SIGNAL('timeout()'), self, SLOT('update()'))
+    @time = Qt::Time.currentTime
+    puts "[NOTICE] Current Time: #{@time.toString}" if $DEBUG == true
+    @timer.start($FRAMES_PER_SECOND)
   end
 
   def paintEvent event
@@ -43,15 +44,19 @@ class VideoPlayer < Qt::Widget
     @viewport.frame = @video_playback.getFrame(@time.elapsed)
     image = Qt::Image.new(@viewport.frame, @viewport.width, @viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 0, 0, image
+    #@sti_viewport.frame = @video_playback.getFrame(@time.elapsed)
+    image = Qt::Image.new(@sti_viewport.frame, @sti_viewport.width, @sti_viewport.height, Qt::Image.Format_RGB888)
+    painter.drawImage 320, 0, image
   end
 end
 
 class Viewport
   attr_reader :frame, :width, :height
 
-  def initialize(width, height)
+  def initialize(width, height, fill=nil)
     self.width = width
     self.height = height
+    self.frame = Array.new(width*height*3, 0).pack('C*') if fill == :black
   end
 
   attr_writer :frame, :width, :height
