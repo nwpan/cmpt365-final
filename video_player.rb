@@ -22,7 +22,7 @@ class VideoPlayer < Qt::Widget
     puts "[NOTICE] Loading Video #2 into Video Playback" if $DEBUG == true
     @video_playback.videos << video_2
     puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
-    @video_playback.videoWipe(0, 0, 4)
+    @video_playback.videoWipe(0, 0, 0, 4)
 
     @sti_playback = STIPlayback.new(320, 200, @video_playback.frame_count)
 
@@ -122,7 +122,7 @@ class VideoPlayback
     main_video.frames[frame_number]
   end
 
-  def videoWipe(start, video_id, speed)
+  def videoWipe(start_v1, start_v2, video_id, speed)
     next_video = videos[video_id]
     width_actual = self.width*3
     end_pos = height*width_actual
@@ -135,8 +135,8 @@ class VideoPlayback
 
     pos_boundary = width-1
     for c in 0..transition_frame_count
-      main_data = main_video.frames[c].unpack('C*')
-      next_data = next_video.frames[c].unpack('C*')
+      main_data = main_video.frames[c+start_v1].unpack('C*')
+      next_data = next_video.frames[c+start_v2].unpack('C*')
       for row in (0..height)
         row_actual = row*width_actual
         for col in (width-1).downto(pos_boundary)
