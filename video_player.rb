@@ -23,6 +23,9 @@ class VideoPlayer < Qt::Widget
     @video_playback.videos << video_2
     puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
     @video_playback.videoWipe(0, 0, 4)
+
+    @sti_playback = STIPlayback.new(320, 200, video_1.frames_count)
+
     puts "[NOTICE] Initialization Complete" if $DEBUG == true
     @timer = Qt::Timer.new(self)
     connect(@timer, SIGNAL('timeout()'), self, SLOT('update()'))
@@ -44,7 +47,7 @@ class VideoPlayer < Qt::Widget
     @viewport.frame = @video_playback.getFrame(@time.elapsed)
     image = Qt::Image.new(@viewport.frame, @viewport.width, @viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 0, 0, image
-    #@sti_viewport.frame = @video_playback.getFrame(@time.elapsed)
+    @sti_viewport.frame = @sti_playback.getFrame(@sti_viewport.frame, @viewport.frame, @time.elapsed)
     image = Qt::Image.new(@sti_viewport.frame, @sti_viewport.width, @sti_viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 320, 0, image
   end
@@ -60,6 +63,44 @@ class Viewport
   end
 
   attr_writer :frame, :width, :height
+end
+
+class STIPlayback
+  attr_reader :width, :height, :frames_count
+
+  def initialize(width, height, frames_count)
+    self.width = width
+    self.height = height
+    self.frames_count = frames_count
+  end
+
+  def getFrame(sti_frame, viewport_frame, time_elapsed)
+    width_actual = self.width*3
+    end_pos = height*width_actual
+    main_data = sti_frame.unpack('C*')
+    next_data = viewport_frame.unpack('C*')
+
+    frame_number = (time_elapsed / $FRAMES_PER_SECOND) % self.frames_count
+
+    row = frame_number
+    pos_boundary = width
+    row_next = width_actual*100
+      row_actual = frame_number*width_actual
+      for col in (0..pos_boundary)
+        col_actual = col*3
+        pos_actual = (col_actual-row_actual)
+
+        pos_next = (col_actual-row_next)
+
+        main_data[pos_actual] = next_data[pos_next]
+        main_data[pos_actual+1] = next_data[pos_next+1]
+        main_data[pos_actual+2] = next_data[pos_next+2]
+      end
+    return main_data.pack('C*')
+  end
+
+private
+  attr_writer :width, :height, :frames_count
 end
 
 class VideoPlayback
