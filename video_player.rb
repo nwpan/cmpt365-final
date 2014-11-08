@@ -24,7 +24,7 @@ class VideoPlayer < Qt::Widget
     puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
     @video_playback.videoWipe(0, 0, 4)
 
-    @sti_playback = STIPlayback.new(320, 200, video_1.frames_count)
+    @sti_playback = STIPlayback.new(320, 200, @video_playback.frame_count)
 
     puts "[NOTICE] Initialization Complete" if $DEBUG == true
     @timer = Qt::Timer.new(self)
@@ -84,7 +84,7 @@ class STIPlayback
 
     row = frame_number
     pos_boundary = width
-    row_next = width_actual*100
+    row_next = width_actual*(height/2)
       row_actual = frame_number*width_actual
       for col in (0..pos_boundary)
         col_actual = col*3
@@ -104,19 +104,20 @@ private
 end
 
 class VideoPlayback
-  attr_reader :main_video, :videos, :width, :height
+  attr_reader :main_video, :videos, :width, :height, :frame_count
 
   def initialize(main_video, width, height)
     self.width = width
     self.height = height
     self.main_video = main_video
     self.videos = Array.new
+    self.frame_count = @main_video.frames.size
     @count = 0
   end
 
   def getFrame(time_elapsed)
     return nil if main_video.nil? || main_video.frames_count <= 0
-    frame_number = (time_elapsed / $FRAMES_PER_SECOND) % main_video.frames_count
+    frame_number = (time_elapsed / $FRAMES_PER_SECOND) % self.frame_count
     puts "[NOTICE] Frame #: #{frame_number}" if $DEBUG == true
     main_video.frames[frame_number]
   end
@@ -126,12 +127,14 @@ class VideoPlayback
     width_actual = self.width*3
     end_pos = height*width_actual
 
-    transition_time = (main_video.frames.size > next_video.frames.size ? next_video.frames.size : main_video.frames.size)-1
+    transition_frame_count = width / speed
+    self.frame_count = transition_frame_count
+    #transition_frame_count = (main_video.frames.size > next_video.frames.size ? next_video.frames.size : main_video.frames.size)-1
 
-    puts "[NOTICE] Transition Time: #{transition_time}" if $DEBUG == true
+    puts "[NOTICE] Transition Frame Count: #{transition_frame_count}" if $DEBUG == true
 
     pos_boundary = width-1
-    for c in 0..transition_time
+    for c in 0..transition_frame_count
       main_data = main_video.frames[c].unpack('C*')
       next_data = next_video.frames[c].unpack('C*')
       for row in (0..height)
@@ -155,7 +158,7 @@ class VideoPlayback
   end
 
 private
-  attr_writer :main_video, :videos, :width, :height
+  attr_writer :main_video, :videos, :width, :height, :frame_count
 end
 
 class Video
