@@ -1,3 +1,4 @@
 vendor
 output-*.*.bmp
 PRJWIPE.pdf
+tmp/*
