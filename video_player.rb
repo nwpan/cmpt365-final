@@ -8,21 +8,34 @@ class VideoPlayer < Qt::Widget
   end
 
   def initVideo
-    puts "[NOTICE] Initializing Video #1" if $DEBUG == true
-    video_1 = Video.new("./assets/MELT.MPG")
-    puts "[NOTICE] Video Loaded: #{video_1.frames.length} Frames" if $DEBUG == true
-    puts "[NOTICE] Initializing Video #2" if $DEBUG == true
-    video_2 = Video.new("./assets/DELTA.MPG")
-    puts "[NOTICE] Video Loaded: #{video_2.frames.length} Frames" if $DEBUG == true
+    if $DEBUG == false
+      $options[:videos] = {:videos => ["./assets/MELT.MPG", "./assets/DELTA.MPG"]}
+    end
+
+    videos = []
+    $options[:videos].each_with_index do |file, index|
+      puts "[NOTICE] Initializing Video #{index}" if $DEBUG == true
+      video = Video.new(file)
+      videos << video
+      puts "[NOTICE] Video Loaded: #{video.frames.length} Frames" if $DEBUG == true
+    end
+
     puts "[NOTICE] Initializing Swipe Viewport and STI Viewport" if $DEBUG == true
     @viewport = Viewport.new(320, 200)
     @sti_viewport = Viewport.new(320, 200, :black)
+
     puts "[NOTICE] Loading Video #1 into Video Playback" if $DEBUG == true
-    @video_playback = VideoPlayback.new(video_1, 320, 200)
-    puts "[NOTICE] Loading Video #2 into Video Playback" if $DEBUG == true
-    @video_playback.videos << video_2
-    puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
-    @video_playback.videoWipe(0, 0, 0, 4)
+    @video_playback = VideoPlayback.new(videos.first, 320, 200)
+
+    videos.drop(1).each_with_index do |video, index|
+      puts "[NOTICE] Loading Video #{index} into Video Playback" if $DEBUG == true
+      @video_playback.videos << video
+    end
+
+    if @video_playback.videos.size >= 1
+      puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
+      @video_playback.videoWipe(0, 0, 0, 4)
+    end
 
     @sti_playback = STIPlayback.new(320, 200, @video_playback.frame_count)
 
@@ -129,17 +142,30 @@ class VideoPlayback
 
     transition_frame_count = width / speed
     self.frame_count = transition_frame_count
-    #transition_frame_count = (main_video.frames.size > next_video.frames.size ? next_video.frames.size : main_video.frames.size)-1
+
+    case $options[:swipe]
+      when :left2right
+        col  = 0
+        incr = 1
+        endl = width-1
+        speed = -(speed)
+        pos_boundary = 0
+      else
+        col  = width-1
+        incr = -1
+        endl = 0
+        speed = -(speed)
+        pos_boundary = width-1
+    end
 
     puts "[NOTICE] Transition Frame Count: #{transition_frame_count}" if $DEBUG == true
 
-    pos_boundary = width-1
     for c in 0..transition_frame_count
       main_data = main_video.frames[c+start_v1].unpack('C*')
       next_data = next_video.frames[c+start_v2].unpack('C*')
       for row in (0..height)
         row_actual = row*width_actual
-        for col in (width-1).downto(pos_boundary)
+        until col > pos_boundary do
           col_actual = col*3
           pos_actual = (col_actual-row_actual)
 
@@ -150,9 +176,11 @@ class VideoPlayback
           main_data[pos_actual] = next_data[pos_actual]
           main_data[pos_actual+1] = next_data[pos_actual+1]
           main_data[pos_actual+2] = next_data[pos_actual+2]
+
+          col += incr
         end
       end
-      pos_boundary -= speed
+      pos_boundary += speed
       main_video.frames[c] = main_data.pack('C*')
     end
   end
