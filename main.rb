@@ -4,9 +4,11 @@ require 'bundler'
 Bundler.require(:default)
 
 require 'Qt'
+require 'histogram/array'
 require_relative 'video_player'
 
 $DEBUG              = true
+$SUPPRESS_RENDER    = true
 $WIDTH              = 640
 $HEIGHT             = 200
 $FRAMES_PER_SECOND  = 100
