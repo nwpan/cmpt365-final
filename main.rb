@@ -60,7 +60,7 @@ OptionParser.new do |opts|
   end
   opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up], "Select swipe type (right2left, left2right, up2down, down2up).") do |s|
     if s.nil?
-          $options[:swipe] = {right2left: true}
+      $options[:swipe] = {right2left: true}
     else
       $options[:swipe] = s
     end

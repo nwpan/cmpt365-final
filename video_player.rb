@@ -8,7 +8,7 @@ class VideoPlayer < Qt::Widget
   end
 
   def initVideo
-    if $DEBUG == false
+    if $DEBUG && $options[:videos].nil?
       $options[:videos] = {:videos => ["./assets/MELT.MPG", "./assets/DELTA.MPG"]}
     end
 
@@ -172,22 +172,22 @@ class VideoPlayback
         pos_boundary = 0
         incr = 1
         transition_frame_count = self.height / speed
-        puts "[NOTICE] Swipe Mode: Up-to-Down"
+        puts "[NOTICE] Swipe Mode: Up-to-Down" if $DEBUG == true
       when :down2up
         pos_boundary = self.height-1
         incr = -1
         transition_frame_count = self.height / speed
-        puts "[NOTICE] Swipe Mode: Down-to-Up"
+        puts "[NOTICE] Swipe Mode: Down-to-Up" if $DEBUG == true
       when :left2right
         pos_boundary = 0
         incr = 1
         transition_frame_count = self.width / speed
-        puts "[NOTICE] Swipe Mode: Left-to-Right"
+        puts "[NOTICE] Swipe Mode: Left-to-Right" if $DEBUG == true
       else
         pos_boundary = self.width-1
         incr = -1
         transition_frame_count = self.width / speed
-        puts "[NOTICE] Swipe Mode: Right-to-Left"
+        puts "[NOTICE] Swipe Mode: Right-to-Left" if $DEBUG == true
     end
     self.frame_count = transition_frame_count
 
