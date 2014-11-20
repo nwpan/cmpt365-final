@@ -23,3 +23,13 @@ Specifically this is for a course assignment written in Ruby for CMPT365 at Simo
 
 #### Run Ruby Script
 	ruby ./cmpt365_p03.rb
+
+### Ways to Run
+#### Swiping from Left-to-Right
+	ruby main.rb --swipe left2right --videos ./assets/DELTA.MPG,./assets/MELT.MPG
+#### Swiping from Right-to-Left
+	ruby main.rb --swipe right2left --videos ./assets/DELTA.MPG,./assets/MELT.MPG
+#### Swiping from Up-to-Down
+	ruby main.rb --swipe up2down --videos ./assets/DELTA.MPG,./assets/MELT.MPG
+#### Swiping from Down-to-Up
+	ruby main.rb --swipe down2up --videos ./assets/DELTA.MPG,./assets/MELT.MPG

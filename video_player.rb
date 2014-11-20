@@ -167,50 +167,94 @@ class VideoPlayback
     width_actual = self.width*3
     end_pos = height*width_actual
 
-    transition_frame_count = width / speed
-    self.frame_count = transition_frame_count
-
     case $options[:swipe]
+      when :up2down
+        pos_boundary = 0
+        incr = 1
+        transition_frame_count = self.height / speed
+      when :down2up
+        pos_boundary = self.height-1
+        incr = -1
+        transition_frame_count = self.height / speed
       when :left2right
         pos_boundary = 0
         incr = 1
+        transition_frame_count = self.width / speed
       else
-        pos_boundary = width-1
+        pos_boundary = self.width-1
         incr = -1
+        transition_frame_count = self.width / speed
     end
+    self.frame_count = transition_frame_count
 
     puts "[NOTICE] Transition Frame Count: #{transition_frame_count}" if $DEBUG == true
 
     for c in 0..transition_frame_count
       main_data = main_video.frames[c+start_v1].unpack('C*')
       next_data = next_video.frames[c+start_v2].unpack('C*')
-      for row in (0..height)
-        row_actual = row*width_actual
-        if $options[:swipe]=='left2right'.to_sym
-          for col in (0..pos_boundary)
-            col_actual = col*3
-            pos_actual = (col_actual-row_actual)
+      if [:up2down, :down2up].include? $options[:swipe]
+        if $options[:swipe]== :up2down
+          for row in (0..pos_boundary)
+            row_actual = row*width_actual
+            for col in (0..self.width-1)
+              col_actual = col*3
+              pos_actual = (col_actual+row_actual)
 
-            if next_data[pos_actual].nil?
-              break
+              if next_data[pos_actual].nil?
+                break
+              end
+
+              main_data[pos_actual] = next_data[pos_actual]
+              main_data[pos_actual+1] = next_data[pos_actual+1]
+              main_data[pos_actual+2] = next_data[pos_actual+2]
             end
-
-            main_data[pos_actual] = next_data[pos_actual]
-            main_data[pos_actual+1] = next_data[pos_actual+1]
-            main_data[pos_actual+2] = next_data[pos_actual+2]
           end
-        else
-          for col in (self.width-1).downto(pos_boundary)
-            col_actual = col*3
-            pos_actual = (col_actual-row_actual)
+        elsif $options[:swipe]== :down2up
+          for row in (self.height-1).downto(pos_boundary)
+            row_actual = row*width_actual
+            for col in (0..self.width-1)
+              col_actual = col*3
+              pos_actual = (col_actual+row_actual)
 
-            if next_data[pos_actual].nil?
-              break
+              if next_data[pos_actual].nil?
+                break
+              end
+
+              main_data[pos_actual] = next_data[pos_actual]
+              main_data[pos_actual+1] = next_data[pos_actual+1]
+              main_data[pos_actual+2] = next_data[pos_actual+2]
             end
+          end
+        end
+      else
+        for row in (0..height)
+          row_actual = row*width_actual
+          if $options[:swipe]== :left2right
+            for col in (0..pos_boundary)
+              col_actual = col*3
+              pos_actual = (col_actual-row_actual)
 
-            main_data[pos_actual] = next_data[pos_actual]
-            main_data[pos_actual+1] = next_data[pos_actual+1]
-            main_data[pos_actual+2] = next_data[pos_actual+2]
+              if next_data[pos_actual].nil?
+                break
+              end
+
+              main_data[pos_actual] = next_data[pos_actual]
+              main_data[pos_actual+1] = next_data[pos_actual+1]
+              main_data[pos_actual+2] = next_data[pos_actual+2]
+            end
+          else
+            for col in (self.width-1).downto(pos_boundary)
+              col_actual = col*3
+              pos_actual = (col_actual-row_actual)
+
+              if next_data[pos_actual].nil?
+                break
+              end
+
+              main_data[pos_actual] = next_data[pos_actual]
+              main_data[pos_actual+1] = next_data[pos_actual+1]
+              main_data[pos_actual+2] = next_data[pos_actual+2]
+            end
           end
         end
       end

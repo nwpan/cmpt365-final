@@ -49,7 +49,7 @@ OptionParser.new do |opts|
   opts.on("-v", "--videos a,b", Array, "[REQUIRED] List of videos to process") do |v|
     $options[:videos] = v
   end
-  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right], "Select swipe type (right2left, left2right)") do |s|
+  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up], "Select swipe type (right2left, left2right)") do |s|
     if s.nil?
           $options[:swipe] = {right2left: true}
     else
