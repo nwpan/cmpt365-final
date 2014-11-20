@@ -48,7 +48,7 @@ $options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: main.rb [options] --videos path_to_video1,path_to_video2"
 
-  opts.on("-v", "--videos a,b", Array, "[REQUIRED] List of videos to process") do |v|
+  opts.on("-v", "--videos a,b", Array, "[REQUIRED] List of videos to process.") do |v|
     $options[:videos] = v
   end
   opts.on("-n", "--no-render", "Computes wipe and displays STI without frame-by-frame rendering.") do |r|
@@ -58,14 +58,14 @@ OptionParser.new do |opts|
       $options[:no_render] = true
     end
   end
-  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up], "Select swipe type (right2left, left2right)") do |s|
+  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up], "Select swipe type (right2left, left2right, up2down, down2up).") do |s|
     if s.nil?
           $options[:swipe] = {right2left: true}
     else
       $options[:swipe] = s
     end
   end
-  opts.on('-h', '--help', 'Displays Help') do
+  opts.on('-h', '--help', 'Displays Help.') do
     puts opts
     exit
   end
