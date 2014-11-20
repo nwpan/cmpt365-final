@@ -187,7 +187,7 @@ class VideoPlayback
       for row in (0..height)
         row_actual = row*width_actual
         if $options[:swipe]=='left2right'.to_sym
-          for col in (width-1).downto(pos_boundary)
+          for col in (0..pos_boundary)
             col_actual = col*3
             pos_actual = (col_actual-row_actual)
 
@@ -200,7 +200,7 @@ class VideoPlayback
             main_data[pos_actual+2] = next_data[pos_actual+2]
           end
         else
-          for col in (width-1).downto(pos_boundary)
+          for col in (self.width-1).downto(pos_boundary)
             col_actual = col*3
             pos_actual = (col_actual-row_actual)
 
