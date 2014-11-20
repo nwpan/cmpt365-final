@@ -21,11 +21,11 @@ class VideoPlayer < Qt::Widget
     end
 
     puts "[NOTICE] Initializing Swipe Viewport and STI Viewport" if $DEBUG == true
-    @viewport = Viewport.new(320, 200)
-    @sti_viewport = Viewport.new(320, 200, :black)
+    @viewport = Viewport.new($WIDTH, $HEIGHT)
+    @sti_viewport = Viewport.new($WIDTH, $HEIGHT, :black)
 
     puts "[NOTICE] Loading Video #1 into Video Playback" if $DEBUG == true
-    @video_playback = VideoPlayback.new(videos.first, 320, 200)
+    @video_playback = VideoPlayback.new(videos.first, $WIDTH, $HEIGHT)
 
     videos.drop(1).each_with_index do |video, index|
       puts "[NOTICE] Loading Video #{index} into Video Playback" if $DEBUG == true
@@ -37,7 +37,7 @@ class VideoPlayer < Qt::Widget
       @video_playback.videoWipe(0, 0, 0, 4)
     end
 
-    @sti_playback = STIPlayback.new(320, 200, @video_playback.frame_count)
+    @sti_playback = STIPlayback.new($WIDTH, $HEIGHT, @video_playback.frame_count)
 
     puts "[NOTICE] Initialization Complete" if $DEBUG == true
     @timer = Qt::Timer.new(self)
@@ -78,7 +78,7 @@ class VideoPlayer < Qt::Widget
     painter.drawImage 0, 0, image
     @sti_viewport.frame = @sti_playback.getFrame(@sti_viewport.frame, @viewport.frame, frame_number)
     image = Qt::Image.new(@sti_viewport.frame, @sti_viewport.width, @sti_viewport.height, Qt::Image.Format_RGB888)
-    painter.drawImage 320, 0, image
+    painter.drawImage $WIDTH, 0, image
   end
 
   def drawSTIFrame painter
@@ -87,7 +87,7 @@ class VideoPlayer < Qt::Widget
     image = Qt::Image.new(@viewport.frame, @viewport.width, @viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 0, 0, image
     image = Qt::Image.new(@sti_viewport.frame, @sti_viewport.width, @sti_viewport.height, Qt::Image.Format_RGB888)
-    painter.drawImage 320, 0, image
+    painter.drawImage $WIDTH, 0, image
   end
 end
 
@@ -172,18 +172,22 @@ class VideoPlayback
         pos_boundary = 0
         incr = 1
         transition_frame_count = self.height / speed
+        puts "[NOTICE] Swipe Mode: Up-to-Down"
       when :down2up
         pos_boundary = self.height-1
         incr = -1
         transition_frame_count = self.height / speed
+        puts "[NOTICE] Swipe Mode: Down-to-Up"
       when :left2right
         pos_boundary = 0
         incr = 1
         transition_frame_count = self.width / speed
+        puts "[NOTICE] Swipe Mode: Left-to-Right"
       else
         pos_boundary = self.width-1
         incr = -1
         transition_frame_count = self.width / speed
+        puts "[NOTICE] Swipe Mode: Right-to-Left"
     end
     self.frame_count = transition_frame_count
 

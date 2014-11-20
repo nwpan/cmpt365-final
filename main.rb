@@ -10,8 +10,10 @@ require_relative 'video_player'
 
 $DEBUG              = true
 $SUPPRESS_RENDER    = false
-$WIDTH              = 640
+$WIDTH              = 320
 $HEIGHT             = 200
+$FRAME_WIDTH        = $WIDTH*2
+$FRAME_HEIGHT       = 200
 $FRAMES_PER_SECOND  = 100
 
 class QtApp < Qt::MainWindow
@@ -22,8 +24,8 @@ class QtApp < Qt::MainWindow
 
     @videoWidget = VideoPlayer.new(self)
     setCentralWidget @videoWidget
-    setFixedSize($WIDTH, $HEIGHT)
-    resize $WIDTH, $HEIGHT
+    setFixedSize($FRAME_WIDTH, $FRAME_HEIGHT)
+    resize $FRAME_WIDTH, $FRAME_HEIGHT
 
     center
     show
@@ -35,8 +37,8 @@ class QtApp < Qt::MainWindow
     screenWidth = qdw.width
     screenHeight = qdw.height
 
-    x = (screenWidth - $WIDTH) / 2
-    y = (screenHeight - $HEIGHT) / 2
+    x = (screenWidth - $FRAME_WIDTH) / 2
+    y = (screenHeight - $FRAME_HEIGHT) / 2
 
     move x, y
   end
@@ -44,7 +46,7 @@ end
 
 $options = {}
 OptionParser.new do |opts|
-  opts.banner = "Usage: main.rb [options] video"
+  opts.banner = "Usage: main.rb [options] --videos path_to_video1,path_to_video2"
 
   opts.on("-v", "--videos a,b", Array, "[REQUIRED] List of videos to process") do |v|
     $options[:videos] = v
