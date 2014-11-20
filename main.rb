@@ -9,12 +9,12 @@ require 'histogram/array'
 require_relative 'video_player'
 
 $DEBUG              = true
-$SUPPRESS_RENDER    = false
-$WIDTH              = 320
-$HEIGHT             = 200
+$WIDTH              = 160
+$HEIGHT             = 120
 $FRAME_WIDTH        = $WIDTH*2
 $FRAME_HEIGHT       = $HEIGHT
 $FRAMES_PER_SECOND  = 100
+$TRANSITION_STEP    = 4
 
 class QtApp < Qt::MainWindow
   def initialize
@@ -48,6 +48,13 @@ $options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: main.rb [options] --videos path_to_video1,path_to_video2"
 
+  opts.on("-n", "--no-render", "Computes wipe and displays STI without frame-by-frame rendering.") do |r|
+    if r.nil?
+      $options[:no_render] = false
+    else
+      $options[:no_render] = true
+    end
+  end
   opts.on("-v", "--videos a,b", Array, "[REQUIRED] List of videos to process") do |v|
     $options[:videos] = v
   end

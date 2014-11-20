@@ -34,7 +34,7 @@ class VideoPlayer < Qt::Widget
 
     if @video_playback.videos.size >= 1
       puts "[NOTICE] Processing Video Transitions" if $DEBUG == true
-      @video_playback.videoWipe(0, 0, 0, 4)
+      @video_playback.videoWipe(0, 0, 0, $TRANSITION_STEP)
     end
 
     @sti_playback = STIPlayback.new($WIDTH, $HEIGHT, @video_playback.frame_count)
@@ -45,7 +45,7 @@ class VideoPlayer < Qt::Widget
     @time = Qt::Time.currentTime
     puts "[NOTICE] Current Time: #{@time.toString}" if $DEBUG == true
 
-    if $SUPPRESS_RENDER
+    if $options[:no_render]
       for frame_number in (0..@sti_playback.frames_count)
         if @sti_playback.status
           @viewport.frame = @video_playback.getFrame(@sti_playback.frames_count)
@@ -64,7 +64,7 @@ class VideoPlayer < Qt::Widget
     if @sti_playback.status
       drawSTIFrame painter
       @timer.stop
-    elsif $SUPPRESS_RENDER == false
+    elsif !$options[:no_render]
       drawFrames painter
     end
     painter.end
