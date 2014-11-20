@@ -13,7 +13,7 @@ $SUPPRESS_RENDER    = false
 $WIDTH              = 320
 $HEIGHT             = 200
 $FRAME_WIDTH        = $WIDTH*2
-$FRAME_HEIGHT       = 200
+$FRAME_HEIGHT       = $HEIGHT
 $FRAMES_PER_SECOND  = 100
 
 class QtApp < Qt::MainWindow
