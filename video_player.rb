@@ -142,45 +142,54 @@ class VideoPlayback
 
     transition_frame_count = width / speed
     self.frame_count = transition_frame_count
+    #transition_frame_count = (main_video.frames.size > next_video.frames.size ? next_video.frames.size : main_video.frames.size)-1
 
     case $options[:swipe]
       when :left2right
-        col  = 0
-        incr = 1
-        endl = width-1
-        speed = -(speed)
         pos_boundary = 0
+        incr = 1
       else
-        col  = width-1
-        incr = -1
-        endl = 0
-        speed = -(speed)
         pos_boundary = width-1
+        incr = -1
     end
 
     puts "[NOTICE] Transition Frame Count: #{transition_frame_count}" if $DEBUG == true
+
 
     for c in 0..transition_frame_count
       main_data = main_video.frames[c+start_v1].unpack('C*')
       next_data = next_video.frames[c+start_v2].unpack('C*')
       for row in (0..height)
         row_actual = row*width_actual
-        until col > pos_boundary do
-          col_actual = col*3
-          pos_actual = (col_actual-row_actual)
+        if $options[:swipe]=='left2right'.to_sym
+          for col in (width-1).downto(pos_boundary)
+            col_actual = col*3
+            pos_actual = (col_actual-row_actual)
 
-          if next_data[pos_actual].nil?
-            break
+            if next_data[pos_actual].nil?
+              break
+            end
+
+            main_data[pos_actual] = next_data[pos_actual]
+            main_data[pos_actual+1] = next_data[pos_actual+1]
+            main_data[pos_actual+2] = next_data[pos_actual+2]
           end
+        else
+          for col in (width-1).downto(pos_boundary)
+            col_actual = col*3
+            pos_actual = (col_actual-row_actual)
 
-          main_data[pos_actual] = next_data[pos_actual]
-          main_data[pos_actual+1] = next_data[pos_actual+1]
-          main_data[pos_actual+2] = next_data[pos_actual+2]
+            if next_data[pos_actual].nil?
+              break
+            end
 
-          col += incr
+            main_data[pos_actual] = next_data[pos_actual]
+            main_data[pos_actual+1] = next_data[pos_actual+1]
+            main_data[pos_actual+2] = next_data[pos_actual+2]
+          end
         end
       end
-      pos_boundary += speed
+      pos_boundary += incr * speed
       main_video.frames[c] = main_data.pack('C*')
     end
   end
