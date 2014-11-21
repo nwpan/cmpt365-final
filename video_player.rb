@@ -8,10 +8,6 @@ class VideoPlayer < Qt::Widget
   end
 
   def initVideo
-    if $DEBUG && $options[:videos].nil?
-      $options[:videos] = {:videos => ["./assets/MELT.MPG", "./assets/DELTA.MPG"]}
-    end
-
     videos = []
     $options[:videos].each_with_index do |file, index|
       puts "[NOTICE] Initializing Video #{index}" if $DEBUG == true
@@ -178,6 +174,10 @@ class VideoPlayback
         incr = -1
         transition_frame_count = self.height / speed
         puts "[NOTICE] Swipe Mode: Down-to-Up" if $DEBUG == true
+      when :iris
+        rmax = Math.sqrt(((self.width-1)/2)**2+((self.height-1)/2)**2)
+        transition_frame_count = (self.height / speed)
+        puts "[NOTICE] Swipe Mode: Iris" if $DEBUG == true
       when :left2right
         pos_boundary = 0
         incr = 1
@@ -196,8 +196,8 @@ class VideoPlayback
     for c in 0..transition_frame_count
       main_data = main_video.frames[c+start_v1].unpack('C*')
       next_data = next_video.frames[c+start_v2].unpack('C*')
-      if [:up2down, :down2up].include? $options[:swipe]
-        if $options[:swipe]== :up2down
+      if [:up2down, :down2up, :iris].include? $options[:swipe]
+        if $options[:swipe] == :up2down
           for row in (0..pos_boundary)
             row_actual = row*width_actual
             for col in (0..self.width-1)
@@ -213,7 +213,8 @@ class VideoPlayback
               main_data[pos_actual+2] = next_data[pos_actual+2]
             end
           end
-        elsif $options[:swipe]== :down2up
+          pos_boundary += incr * speed
+        elsif $options[:swipe] == :down2up
           for row in (self.height-1).downto(pos_boundary)
             row_actual = row*width_actual
             for col in (0..self.width-1)
@@ -227,6 +228,27 @@ class VideoPlayback
               main_data[pos_actual] = next_data[pos_actual]
               main_data[pos_actual+1] = next_data[pos_actual+1]
               main_data[pos_actual+2] = next_data[pos_actual+2]
+            end
+          end
+          pos_boundary += incr * speed
+        elsif $options[:swipe] == :iris
+          rT = (c+1)/(transition_frame_count.to_f)*rmax
+          for row in (0..self.height-1)
+            row_actual = row*width_actual
+            for col in (0..self.width-1)
+              r = Math.sqrt(((col-(self.width-1)/2)/2)**2+((row-(self.height-1)/2)/2)**2)
+              col_actual = col*3
+              pos_actual = (col_actual+row_actual)
+
+              if next_data[pos_actual].nil?
+                break
+              end
+
+              if r < rT
+                main_data[pos_actual] = next_data[pos_actual]
+                main_data[pos_actual+1] = next_data[pos_actual+1]
+                main_data[pos_actual+2] = next_data[pos_actual+2]
+              end
             end
           end
         end
@@ -261,8 +283,8 @@ class VideoPlayback
             end
           end
         end
+        pos_boundary += incr * speed
       end
-      pos_boundary += incr * speed
       main_video.frames[c] = main_data.pack('C*')
     end
     for c in transition_frame_count..self.frame_count-1

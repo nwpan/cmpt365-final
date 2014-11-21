@@ -9,8 +9,8 @@ require 'histogram/array'
 require_relative 'video_player'
 
 $DEBUG              = true
-$WIDTH              = 160
-$HEIGHT             = 120
+$WIDTH              = 320
+$HEIGHT             = 200
 $FRAME_WIDTH        = $WIDTH*2
 $FRAME_HEIGHT       = $HEIGHT
 $FRAMES_PER_SECOND  = 100
@@ -58,7 +58,7 @@ OptionParser.new do |opts|
       $options[:no_render] = true
     end
   end
-  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up], "Select swipe type (right2left, left2right, up2down, down2up).") do |s|
+  opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up, :iris], "Select swipe type (right2left, left2right, up2down, down2up, iris).") do |s|
     if s.nil?
       $options[:swipe] = {right2left: true}
     else
