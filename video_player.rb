@@ -171,7 +171,6 @@ class STIPlayback
       self.status = true
     end
 
-    row = frame_number
     pos_boundary = width
     row_next = width_actual*(height/2)
     row_actual = frame_number*width_actual
@@ -199,11 +198,13 @@ class STIPlayback
       self.status = true
     end
 
-    row = frame_number
     pos_boundary = width
     row_next = width_actual*(height/2)
     row_actual = frame_number*width_actual
     for col in (0..pos_boundary)
+      if frame_number == 0
+        return main_data.pack('C*')
+      end
       col_actual = col*3
       pos_actual = (col_actual-row_actual)
 
