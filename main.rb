@@ -58,6 +58,13 @@ OptionParser.new do |opts|
       $options[:no_render] = true
     end
   end
+  opts.on("-d", "--difference", "Computes the Histogram difference STI.") do |d|
+    if d.nil?
+      $options[:diff] = false
+    else
+      $options[:diff] = true
+    end
+  end
   opts.on("-s", "--swipe [TYPE]", [:right2left, :left2right, :up2down, :down2up, :iris], "Select swipe type (right2left, left2right, up2down, down2up, iris).") do |s|
     if s.nil?
       $options[:swipe] = {right2left: true}

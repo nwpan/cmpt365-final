@@ -18,7 +18,7 @@ class VideoPlayer < Qt::Widget
 
     puts "[NOTICE] Initializing Swipe Viewport and STI Viewport" if $DEBUG == true
     @viewport = Viewport.new($WIDTH, $HEIGHT)
-    @sti_viewport = Viewport.new($WIDTH, $HEIGHT, :black)
+    @sti_viewport = Viewport.new($WIDTH, $HEIGHT, :white)
 
     puts "[NOTICE] Loading Video #1 into Video Playback" if $DEBUG == true
     @video_playback = VideoPlayback.new(videos.first, $WIDTH, $HEIGHT)
@@ -45,6 +45,9 @@ class VideoPlayer < Qt::Widget
       for frame_number in (0..@sti_playback.frames_count)
         if @sti_playback.status
           @viewport.frame = @video_playback.getFrame(@sti_playback.frames_count)
+        elsif ($options[:diff])
+          @viewport.frame = @video_playback.getFrame(frame_number)
+          @sti_viewport.frame = @sti_playback.getDiffFrame(@sti_viewport.frame, @viewport.frame, frame_number, @viewport.getMinimumDifferenceColumn)
         else
           @viewport.frame = @video_playback.getFrame(frame_number)
           @sti_viewport.frame = @sti_playback.getFrame(@sti_viewport.frame, @viewport.frame, frame_number)
@@ -72,7 +75,11 @@ class VideoPlayer < Qt::Widget
     @viewport.frame = @video_playback.getFrame(frame_number)
     image = Qt::Image.new(@viewport.frame, @viewport.width, @viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage 0, 0, image
-    @sti_viewport.frame = @sti_playback.getFrame(@sti_viewport.frame, @viewport.frame, frame_number)
+    if ($options[:diff])
+      @sti_viewport.frame = @sti_playback.getDiffFrame(@sti_viewport.frame, @viewport.frame, frame_number, @viewport.getMinimumDifferenceColumn)
+    else
+      @sti_viewport.frame = @sti_playback.getFrame(@sti_viewport.frame, @viewport.frame, frame_number)
+    end
     image = Qt::Image.new(@sti_viewport.frame, @sti_viewport.width, @sti_viewport.height, Qt::Image.Format_RGB888)
     painter.drawImage $WIDTH, 0, image
   end
@@ -94,6 +101,51 @@ class Viewport
     self.width = width
     self.height = height
     self.frame = Array.new(width*height*3, 0).pack('C*') if fill == :black
+    self.frame = Array.new(width*height*3, 255).pack('C*') if fill == :white
+  end
+
+  def getMinimumDifferenceColumn
+    curr_frame = self.frame.unpack('C*')
+    sturges_num = 1+Math.log(self.height, 2).to_i
+    width_actual = self.width*3
+    hist   = Array.new(self.width) { Array.new(sturges_num) { Array.new(sturges_num, 0) } }
+
+    bounds = (256*3)/sturges_num # might have to do 256 * 3 (for chromaticity being R+G+B)
+
+    for row in (0..self.height-1)
+      row_actual = row*width_actual
+      for col in (0..self.width-1)
+        col_actual = col*3
+        pos_actual = (col_actual+row_actual)
+
+        if curr_frame[pos_actual].nil?
+          break
+        end
+        red_bin = curr_frame[pos_actual] / bounds
+        green_bin = curr_frame[pos_actual+1] / bounds
+        hist[col][red_bin][green_bin] += 1
+      end
+    end
+    total = 256
+    hist.map! { |col| col.map { |row| row.map {|val| val.to_f/total } }}
+    min_col = nil
+    min_col_val = 1.0
+    if (defined?(@hist_prev))
+      (0..self.width-1).each do |r|
+        intersect_value = 0
+        (0..sturges_num-1).each do |i|
+          (0..sturges_num-1).each do |j|
+            intersect_value += (hist[r][i][j] < @hist_prev[r][i][j] ? hist[r][i][j] : @hist_prev[r][i][j])
+          end
+        end
+        if intersect_value < 0.7 && min_col_val > intersect_value
+          min_col = r
+          min_col_val = intersect_value
+        end
+      end
+    end
+    @hist_prev = hist
+    min_col
   end
 
   attr_writer :frame, :width, :height
@@ -107,6 +159,34 @@ class STIPlayback
     self.height = height
     self.frames_count = frames_count
     self.status = false
+  end
+
+  def getDiffFrame(sti_frame, viewport_frame, frame_number, min_diff)
+    width_actual = self.width*3
+    end_pos = height*width_actual
+    main_data = sti_frame.unpack('C*')
+    next_data = viewport_frame.unpack('C*')
+
+    if frame_number == self.frames_count-1
+      self.status = true
+    end
+
+    row = frame_number
+    pos_boundary = width
+    row_next = width_actual*(height/2)
+    row_actual = frame_number*width_actual
+      if min_diff.nil?
+        return main_data.pack('C*')
+      end
+      col_actual = min_diff*3
+      pos_actual = (col_actual-row_actual)
+
+      pos_next = (col_actual-row_actual)
+
+      main_data[pos_actual] = next_data[pos_next]
+      main_data[pos_actual+1] = next_data[pos_next+1]
+      main_data[pos_actual+2] = next_data[pos_next+2]
+    return main_data.pack('C*')
   end
 
   def getFrame(sti_frame, viewport_frame, frame_number)
