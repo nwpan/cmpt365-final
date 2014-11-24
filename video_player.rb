@@ -110,7 +110,7 @@ class Viewport
     width_actual = self.width*3
     hist   = Array.new(self.width) { Array.new(sturges_num) { Array.new(sturges_num, 0) } }
 
-    bounds = (256*3)/sturges_num # might have to do 256 * 3 (for chromaticity being R+G+B)
+    bounds = (256*3)/sturges_num
 
     for row in (0..self.height-1)
       row_actual = row*width_actual
