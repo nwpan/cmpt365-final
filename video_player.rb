@@ -27,6 +27,10 @@ class VideoPlayer < Qt::Widget
 
     videos.drop(1).each_with_index do |video, index|
       puts "[NOTICE] Loading Video #{index} into Video Playback" if $DEBUG == true
+      if video.width != $WIDTH || video.height != $HEIGHT
+        puts "[ERROR] Video #{index} dimensions do not match!"
+        break
+      end
       @video_playback.videos << video
     end
 
@@ -211,6 +215,10 @@ class STIPlayback
       pos_actual = (col_actual-row_actual)
 
       pos_next = (col_actual-row_next)
+
+      if next_data[pos_actual].nil?
+        break
+      end
 
       main_data[pos_actual] = next_data[pos_next]
       main_data[pos_actual+1] = next_data[pos_next+1]
