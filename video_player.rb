@@ -4,10 +4,10 @@ class VideoPlayer < Qt::Widget
 
     setFocusPolicy Qt::StrongFocus
 
-    initVideo
+    initVideo(parent)
   end
 
-  def initVideo
+  def initVideo(parent)
     videos = []
     $options[:videos].each_with_index do |file, index|
       puts "[NOTICE] Initializing Video #{index}" if $DEBUG == true
@@ -15,6 +15,8 @@ class VideoPlayer < Qt::Widget
       videos << video
       puts "[NOTICE] Video Loaded: #{video.frames.length} Frames" if $DEBUG == true
     end
+
+    parent.resizeWindow(videos[0].width, videos[0].height) if videos.size > 0
 
     puts "[NOTICE] Initializing Swipe Viewport and STI Viewport" if $DEBUG == true
     @viewport = Viewport.new($WIDTH, $HEIGHT)
@@ -379,15 +381,14 @@ private
 end
 
 class Video
-  attr_reader :frames, :frames_count
+  attr_reader :frames, :frames_count, :width, :height
 
   def initialize(file)
     self.frames = getFrames(file)
     self.frames_count = frames.size
   end
 
-
-  attr_writer :frames, :frames_count
+  attr_writer :frames, :frames_count, :width, :height
 private
   def getFrames(file)
     frames = Array.new
@@ -397,6 +398,8 @@ private
         raise "[ERROR] File does not contain a video stream" unless video_stream
         while frame = video_stream.decode ^ video_stream.resampler(:rgb24) do
           break unless frame.instance_of?(FFMPEG::VideoFrame)
+          self.width = frame.width
+          self.height = frame.height
           frames << frame.data
         end
       end

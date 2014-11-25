@@ -9,8 +9,8 @@ require 'histogram/array'
 require_relative 'video_player'
 
 $DEBUG              = true
-$WIDTH              = 320
-$HEIGHT             = 200
+$WIDTH              = 160
+$HEIGHT             = 120
 $FRAME_WIDTH        = $WIDTH*2
 $FRAME_HEIGHT       = $HEIGHT
 $FRAMES_PER_SECOND  = 100
@@ -41,6 +41,14 @@ class QtApp < Qt::MainWindow
     y = (screenHeight - $FRAME_HEIGHT) / 2
 
     move x, y
+  end
+
+  def resizeWindow(width, height)
+    $WIDTH = width
+    $HEIGHT = height
+    $FRAME_WIDTH        = $WIDTH*2
+    $FRAME_HEIGHT       = $HEIGHT
+    resize $FRAME_WIDTH, $FRAME_HEIGHT
   end
 end
 
