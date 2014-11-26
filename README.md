@@ -33,3 +33,5 @@ Specifically this is for a course assignment written in Ruby for CMPT365 at Simo
 	ruby main.rb --swipe up2down --videos ./assets/DELTA.MPG,./assets/MELT.MPG
 #### Swiping from Down-to-Up
 	ruby main.rb --swipe down2up --videos ./assets/DELTA.MPG,./assets/MELT.MPG
+#### Swiping as an opening Iris
+	ruby main.rb --swipe iris --videos ./assets/DELTA.MPG,./assets/MELT.MPG
